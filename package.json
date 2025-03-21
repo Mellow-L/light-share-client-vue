@@ -1,0 +1,43 @@
+{
+  "name": "vue-cli",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "@nutui/icons-vue": "^0.1.1",
+    "@nutui/nutui": "^4.3.10",
+    "@nutui/touch-emulator": "^1.0.0",
+    "axios": "^1.8.1",
+    "browser-image-compression": "^2.0.2",
+    "core-js": "^3.37.1",
+    "crypto-js": "^4.2.0",
+    "dateformat-util": "^1.0.5",
+    "pinia": "^3.0.1",
+    "pinia-plugin-persistedstate": "^4.2.0",
+    "qs": "^6.14.0",
+    "sass-loader": "^14.2.1",
+    "vue": "^3.4.29",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@arco-design/web-vue": "^2.56.3",
+    "@babel/core": "^7.24.7",
+    "@babel/eslint-parser": "^7.24.7",
+    "@nutui/auto-import-resolver": "^1.0.0",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "sass": "^1.77.6",
+    "unplugin-vue-components": "^0.27.0"
+  },
+  
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}
