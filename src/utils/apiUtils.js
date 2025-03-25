@@ -6,6 +6,7 @@ import {alertFail, showFail, showSuccess} from "@/utils/showMessage";
 import {gotoLogin} from "@/router/my-router";
 import {baseUrl} from "@/stores/basic-data";
 import  { ref,watchEffect,toValue,watch } from 'vue'
+import { useStarStore } from "@/stores/star-store";
 
 
 let userStore;
@@ -411,8 +412,12 @@ export async function apiPostComment(itemId,params) {
     }
 }
 export async function apiAddItemStar(itemId){
+    let starStore = useStarStore()
     try {
         let res = await axiosClient.post('/items/put/addstar/'+itemId)
+        if(res?.data){
+            starStore.setStarTime(itemId)
+        }
         return Promise.resolve(res?.data)
     } catch (error) {
         alertFail(apiAddItemStar.name,error?.message)

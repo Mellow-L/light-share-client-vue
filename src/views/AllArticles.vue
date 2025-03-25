@@ -45,6 +45,7 @@ import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
 import {apiAddItemStar, apiGetAllItemsRefresh} from '@/utils/apiUtils'
 import{gotoShowComment} from '@/router/my-router'
+import { useStarStore } from '@/stores/star-store';
 
 const counterStore = useCounterStore()
 const counterRefObj = storeToRefs(counterStore)
@@ -89,6 +90,11 @@ watch(list,()=>{
 })
 
 async function clickStar(id){
+    const starStore = useStarStore()
+    if(!starStore.canStar(id)){
+        alert("每天只能点赞一次")
+        return
+    }
     let data = await apiAddItemStar(id)
     if(data){
         refreshFun()
