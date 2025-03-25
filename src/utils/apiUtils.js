@@ -196,18 +196,20 @@ export async function apiRegister(postData){
     }
 }
 
-export function apiGetAllItemsRefresh(timeCounter,query = ref('skip=0&limit=100')){
+export function apiGetAllItemsRefresh(timeCounter,query = ref('skip=0&limit=100'),query2 = ref('')){
     //这里timeCounter由外部传入
     let list = ref(null)
     let error = ref(null)
     let isLoading = ref(true)
     let url
+    let isSearchMode = ref(false)
+
     watchEffect(()=>{
-        // 地址构建
+        // NOTE: 搜索模式下不开启自动刷新，避免冲突
+        if(isSearchMode.value) return
+        
         url=`/items/auto-refresh/${toValue(timeCounter)}?${toValue(query)}`
-        // 状态管理
         isLoading.value = true
-        // 发送请求
         axiosClient.get(url).then(res =>{
             console.log("刷新数据请求已发送")
             if(res?.data){
@@ -218,6 +220,33 @@ export function apiGetAllItemsRefresh(timeCounter,query = ref('skip=0&limit=100'
         }).catch(e => {
             //console.log("get失败")
             error.value = e?.message? e.message:JSON.stringify(e,null,1)
+            isLoading.value = false
+        })
+    })
+    
+    watch(()=>toValue(query2),(newKeyword)=>{
+        const keyword = newKeyword.trim()
+        if(keyword === ''){// 关键词为空回归自动刷新模式
+            isSearchMode.value = false
+            return
+        }
+        isSearchMode.value = true
+        url = `/items/?keyword=${keyword}`
+        isLoading.value = true
+        axiosClient.get(url).then(res=>{
+            if(res?.data){
+                list.value = res.data
+            }
+            isLoading.value = false
+            error.value = null
+        }).catch(e => {
+            if(e.status == 404){
+                showFail(apiGetAllItemsRefresh.name,'无数据')
+                list.value = null
+                error.value = null
+            }else{
+                error.value = e?.message ? e.message : JSON.stringify(e,null,1)
+            }
             isLoading.value = false
         })
     })

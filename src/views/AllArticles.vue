@@ -1,4 +1,11 @@
 <template>
+    <nut-searchbar v-model="searchVal" 
+        @search="searchFun" placeholder="搜索">
+        <template #rightin>
+            <Search2 @click="searchFun"></Search2>
+        </template>
+        <template #rightout>Search</template>
+    </nut-searchbar>
     <nut-empty v-if="error" image="error" description="Error">
         <nut-cell>
             <nut-ellipsis :content="error"
@@ -46,29 +53,32 @@ import { useScrollPos } from '@/utils/scrollUtils';
 import {apiAddItemStar, apiGetAllItemsRefresh} from '@/utils/apiUtils'
 import{gotoShowComment} from '@/router/my-router'
 import { useStarStore } from '@/stores/star-store';
+import { Search2 } from '@nutui/icons-vue';
 
 const counterStore = useCounterStore()
 const counterRefObj = storeToRefs(counterStore)
-
-// 1. 双重包装的问题，创建了与原始store状态脱节的副本
-// 2. ".value"的探讨
-
 const counterRef = ref(counterRefObj.articleCounter.value)
-//const counterRef = counterRefObj.articleCounterEnabled
 const counterEnableRef = ref(counterRefObj.articleCounterEnabled)
-//const counterEnableRef = counterRefObj.articleCounterEnabled
-
 const hasMore = ref(true)
 const currentPage = ref(0)
 const PAGE_SIZE = 5
+
+// 二者分离避免频繁触发请求
+const searchVal = ref('') // 实时输入值
+const searchValCommit = ref('') // 提交的搜索值 注意声明在api函数使用前
+
 const q = computed(()=>{
     let offset = 0
     return `skip=${offset}&limit=${PAGE_SIZE*(currentPage.value+1)}`
 })
 const allList = ref(new Map())
+const{list, error, isLoading} = apiGetAllItemsRefresh(counterRef,q,searchValCommit)
 
-const{list, error, isLoading} = apiGetAllItemsRefresh(counterRef,q)
 
+function searchFun(){
+    searchValCommit.value = searchVal.value // 提交值为输入值
+    console.log('search',searchValCommit.value);
+}
 function refreshFun(){
     counterRef.value++
     // counterStore.incrementArticleCounter()

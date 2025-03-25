@@ -36,7 +36,7 @@ const useUser = useUserStore()
 const userRef = storeToRefs(useUser)
 const isLogin = ref(userRef.isLogin)
 const uuid = ref(userRef.uuid)
-const {list,error,isLoading}  = apiGetAllItemsByUserId(counter,uuid,searchVal)
+const {list,error,isLoading}  = apiGetAllItemsByUserId(counter,uuid,searchValCommit)
 useScrollPos()
 function refresh(){
     counter.value ++
