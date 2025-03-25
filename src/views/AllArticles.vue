@@ -69,8 +69,8 @@ const allList = ref(new Map())
 const{list, error, isLoading} = apiGetAllItemsRefresh(counterRef,q)
 
 function refreshFun(){
-    //counterRef.value++
-    counterStore.incrementArticleCounter()
+    counterRef.value++
+    // counterStore.incrementArticleCounter()
 }
 
 function scrollChange(v){

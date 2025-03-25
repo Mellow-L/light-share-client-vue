@@ -66,7 +66,6 @@ const formData = reactive({
     verifyPassword:"",
 })
 
-// TODO:
 const formRef = ref(null)
 
 const customBlurValidate = (prop)=>{
@@ -94,7 +93,6 @@ const passwordIsSameValidate = (val)=>{
 }
 
 async function register(){
-    // TODO:
     formRef.value?.validate().then(async ({valid, errors})=>{
         showSuccess(register.name, valid, errors)
         if(valid){

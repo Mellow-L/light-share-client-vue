@@ -42,14 +42,6 @@ axiosClient.interceptors.response.use(res=>{
 export async function apiLogin(loginData){
     userStore = useUserStore()
     try{
-        // //console.log("调用post")
-        // console.log("发送的请求体：", {
-        //     username: loginData.username,
-        //     password: loginData.password,
-        //     client_id: loginData.client_id,
-        //     client_secret: loginData.client_secret,
-        // });
-        //console.log("检查loginData："+loginData.username+","+loginData.password)
         let res = await axiosClient.post('auth/jwt/login',qs.stringify(loginData))
         if(res){
             let token = 'Bearer '+res?.data?.access_token
@@ -418,9 +410,9 @@ export async function apiPostComment(itemId,params) {
         alertFail(apiPostComment.name,error?.message)
     }
 }
-export async function apiAddItemStar(itemId,params){
+export async function apiAddItemStar(itemId){
     try {
-        let res = await axiosClient.post('/comments/'+itemId,params)
+        let res = await axiosClient.post('/items/put/addstar/'+itemId)
         return Promise.resolve(res?.data)
     } catch (error) {
         alertFail(apiAddItemStar.name,error?.message)
