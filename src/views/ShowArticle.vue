@@ -33,7 +33,7 @@
                     :description="'@' + owner.name"
                     v-if="formData.src"></a-image>
             </a-typography>
-            <div v-for="(item) in imgContents" :key="item.order">
+            <div v-for="(item) in sortedImgContents" :key="item.order">
                 <pre class="text-style">{{ item.img_content }}</pre>
                 <a-image :src="getAbsoluteImageSrc(item.url)"
                     width="100%" v-if="item.url"></a-image>
@@ -64,7 +64,7 @@ import { imageBaseUrl } from '@/stores/basic-data';
 import { useUserStore } from '@/stores/user';
 import { apiGetItemById, apiPostItemDetail } from '@/utils/apiUtils';
 import { formatDateTime } from '@/utils/formatUtils';
-import { onActivated, reactive, ref, watch } from 'vue';
+import { computed, onActivated, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import {Edit,Eye} from '@nutui/icons-vue'
 const route = useRoute()
@@ -95,9 +95,12 @@ const imgContents = ref([reactive({
     order:0,
     id: routeId
 })])
-
+const sortedImgContents = computed(() => {
+  return [...imgContents.value].sort((a, b) => a.order - b.order);
+});
 const isAuthor = ref(false)
 const {itemData,error,isLoading} = apiGetItemById(routeId,refreshCount)
+
 function updateItemData(){
     if(itemData.value){
         formData.value.title = itemData.value.title

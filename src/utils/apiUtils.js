@@ -393,11 +393,12 @@ export function apiGetCommentsByItemId(counter = ref(1),itemId){
     const comments = ref(null)
     const error = ref(null)
     const isLoading = ref(true)
-    const watchData = [
-        // ()=>toValue(counter),
-        // ()=>toValue(itemId),
-        counter,itemId
-    ]
+    // const watchData = [
+    //     // ()=>toValue(counter),
+    //     // ()=>toValue(itemId),
+    //     counter,itemId
+    // ]
+    const watchData = [counter]
     watch(watchData,()=>{
         let url = '/comments/by-itemid/'+toValue(itemId)
         console.log('comment_url',url)
