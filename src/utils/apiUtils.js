@@ -320,7 +320,7 @@ export function apiGetAllItemsByUserId(timeCounter,user_UUID,query = ref('')){
                 isLoading.value = false
             })
         }
-    })
+    }, { immediate: true })
     return {list,error,isLoading}
 }
 export async function apiDeleteImageById(id) {
@@ -504,4 +504,36 @@ export async function apiPostItemDetail(itemIdRef,titleForm,imgContents){
     }
     console.log('异步循环结束的itemIdRef',itemIdRef.value);
     return Promise.resolve(itemId)
+}
+
+
+export async function apiGetUuidByName(name){
+    let uuid = ref('')
+    let error = ref(null)
+    let isLoading = ref(true)
+    await axiosClient.get(`/users/get_uuid_by_name/${encodeURIComponent(name)}`)
+        .then(res => {
+            uuid.value  = res?.data ?? ''
+            console.log("uuid.value.uuid:",uuid.value.uuid); 
+            isLoading.value = false
+            error.value = null
+        })
+        .catch(e=>{
+            error.value = e?.message ? e.message : JSON.stringify(e, null, 1)
+            isLoading.value = false
+            console.log(error.value);  
+        })
+    return uuid?.value?.uuid
+}
+
+export async function apiGetUserInfoByUuid(uuid){
+    if(!uuid)return 
+    let userInfo = ref({})
+    await axiosClient.get(`/users/by-uuid/${uuid}`).then(res =>{
+        userInfo.value = ref(res?.data ?? '')
+    }).catch(e=>{
+        console.log(`获取用户${uuid}信息失败`,e);
+        return null
+    })
+    return userInfo.value
 }

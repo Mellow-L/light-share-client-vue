@@ -4,7 +4,6 @@
         <template #rightin>
             <Search2 @click="searchFun"></Search2>
         </template>
-        <template #rightout>Search</template>
     </nut-searchbar>
     <nut-empty v-if="error" image="error" description="Error">
         <nut-cell>
@@ -32,14 +31,16 @@
                     v-model="isLoading" @refresh="refreshFun">
                     <MyCard v-for="item in list" :key="item.id" v-bind="item"
                         @onClickStar="(id)=>clickStar(id)"
-                        @onClickComment="gotoShowComment(item.id)"></MyCard>
+                        @onClickComment="gotoShowComment(item.id)"
+                        @onClickUser="(name)=>onClickUser(name)"></MyCard>
                 </nut-pull-refresh>
             </nut-space>
             <nut-space v-else
                 direction="vertical" align="center" fill>
                 <MyCard v-for="item in list" :key="item.id" v-bind="item"
                     @onClickStar="(id)=>clickStar(id)"
-                    @onClickComment="gotoShowComment(item.id)"></MyCard>
+                    @onClickComment="gotoShowComment(item.id)"
+                    @onClickUser="(name,src)=>onClickUser(name,src)"></MyCard>
             </nut-space>
         </nut-infinite-loading>   
     </div>
@@ -50,8 +51,8 @@ import MyCard from "@/components/MyCard"
 import { useCounterStore } from '@/stores/counter-store';
 import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
-import {apiAddItemStar, apiGetAllItemsRefresh} from '@/utils/apiUtils'
-import{gotoShowComment} from '@/router/my-router'
+import {apiAddItemStar, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
+import{gotoShowComment, gotoUserArticle} from '@/router/my-router'
 import { useStarStore } from '@/stores/star-store';
 import { Search2 } from '@nutui/icons-vue';
 
@@ -108,6 +109,18 @@ async function clickStar(id){
     let data = await apiAddItemStar(id)
     if(data){
         refreshFun()
+    }
+}
+
+async function onClickUser(name,src){
+    console.log("头像被点击");
+    try {
+        const uuid = await apiGetUuidByName(name)
+        console.log("后端返回的uuid：",uuid);
+        
+        gotoUserArticle(uuid)
+    } catch (error) {
+        console.log("用户id获取失败",error);
     }
 }
 onActivated(()=>{

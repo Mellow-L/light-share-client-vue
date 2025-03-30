@@ -7,6 +7,7 @@ import MySettings from "@/views/MySettings.vue";
 import ShowComment from "@/views/ShowComment.vue";
 import PostArticle from "@/views/PostArticle.vue";
 import ShowArticle from "@/views/ShowArticle.vue";
+import UserArticles from "@/views/UserArticles.vue";
 //import MyProfile from '@/views/TestImageuploader.vue'
 
 const routes = [
@@ -18,6 +19,7 @@ const routes = [
     {path:'/post-article',component: PostArticle,name:'postArticle'},
     {path:'/show-article/:id',component: ShowArticle,name:'showArticle'},
     {path:'/show-comment/:id',component: ShowComment,name:'showComment',props:true},
+    {path:'/user-article/:uuid',component: UserArticles,name:'UserArticles',props:true},
     // {path:'/show-article/:id',component: ShowArticle,name:'showArticle',props:true},
 ];
 const router = createRouter({
@@ -59,4 +61,8 @@ export function gotoPostArticle(){
 }
 export function replaceToShowArticle(itemId){
     router.replace({name:'showArticle',params:{id:itemId}})
+}
+
+export function gotoUserArticle(uuid){
+    router.push({name:'UserArticles',params:{uuid}})
 }

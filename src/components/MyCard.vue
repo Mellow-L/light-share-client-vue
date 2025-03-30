@@ -22,8 +22,8 @@
         </template>
         <a-card-meta :title="props.title" :description="props.owner.name">
           <template #avatar>
-            <div class="avatar">
-              <a-avatar :size="24" :style="{marginRight:'8px'}">
+            <div class="avatar" @click="onClickUser">
+              <a-avatar :size="24" :style="{marginRight:'8px'}" >
                 <img :alt="avatarAlter" :src="avatarSrc"/>
               </a-avatar>
               <a-typography-text>{{ modify_time }}</a-typography-text>
@@ -67,12 +67,13 @@ const props = defineProps({
     }
   }
 })
+console.log("子组件收到的props",props);
 
 const modify_time = computed(()=>{
   return formatDateTime(props.modify_time, true)
 })
 
-const emit = defineEmits(['onClickStar','onClickMoreActions','onClickItem','onClickComment'])
+const emit = defineEmits(['onClickStar','onClickMoreActions','onClickItem','onClickComment','onClickUser'])
 
 const onClickStar = () => {
   emit('onClickStar',props.id)
@@ -89,7 +90,9 @@ const onClickItem= () => {
 const onClickComment = () => {
   emit('onClickComment',props.id)
 }
-
+const onClickUser = () =>{
+  emit('onClickUser',props.owner.name)
+}
 const avatarAlter = computed(()=>{
   return props.owner?.name ? props.owner.name:''
 })
