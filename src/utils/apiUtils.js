@@ -453,7 +453,7 @@ export async function apiAddItemStar(itemId){
         alertFail(apiAddItemStar.name,error?.message)
     }
 }
-export async function apiGetMyComments(counter) {
+export  function apiGetMyComments(counter) {
     const comments = ref(null)
     const error = ref(null)
     const isLoading = ref(true)
@@ -481,7 +481,6 @@ export async function apiGetMyComments(counter) {
                 isLoading.value = false
             })
     })
-    
     return {comments,error,isLoading}
 }
 
