@@ -37,29 +37,29 @@
                 </div>
             </template>
         </a-comment>
-        <a-comment align="right" v-if="isLogin" :avatar="userAvatar">
-            <template #actions>
-                <a-button type="primary" :key="0"
-                    v-if="!useCounter.commentCounterEnabled"
-                    :loading="isLoading"
-                    @click="refreshFun">刷新</a-button>
-                <a-button key="1" type="primary" @click="addReply">发送</a-button>
-            </template>
-            <template #content>
-                <div v-if="commentData.hint" style="color:grey;">
-                    <a-input v-model="commentData.hint" readonly>
-                        <template #append>
-                            <span @click="()=>commentData.hint = ''">取消引用</span>
-                        </template>
-                    </a-input>
-                </div>
-                <a-input placeholder="Here is your reply." v-model="commentData.content"></a-input>
-            </template>
-        </a-comment>
-        <nut-cell v-else title="未登录，不能评论"
-            is-link
-            @click="gotoLogin(1)"></nut-cell>
-    </div>
+    </div> 
+    <a-comment class="comment-box" align="right" v-if="isLogin" :avatar="userAvatar">
+        <template #actions>
+            <a-button type="primary" :key="0"
+                v-if="!useCounter.commentCounterEnabled"
+                :loading="isLoading"
+                @click="refreshFun">刷新</a-button>
+            <a-button key="1" type="primary" @click="addReply">发送</a-button>
+        </template>
+        <template #content>
+            <div v-if="commentData.hint" style="color:grey;">
+                <a-input v-model="commentData.hint" readonly>
+                    <template #append>
+                        <span @click="()=>commentData.hint = ''">取消引用</span>
+                    </template>
+                </a-input>
+            </div>
+            <a-input placeholder="Here is your reply." v-model="commentData.content"></a-input>
+        </template>
+    </a-comment>
+    <nut-cell v-else title="未登录，不能评论"
+        is-link
+        @click="gotoLogin(1)"></nut-cell>
 </template>
 <script setup lang="js">
 import MyCard from '@/components/MyCard.vue';
@@ -149,6 +149,7 @@ onMounted(async()=>{
     border-radius: 2px;
     cursor:pointer;
     transition: all 0.1s ease;
+    padding-bottom: 80px;
 }
 .action:hover{
     background-color: var(--color-fill-3);
@@ -161,5 +162,18 @@ onMounted(async()=>{
     width:90%;
     margin:auto;
     margin-top:5%;
+    padding-bottom: 120px;
+}
+.comment-box {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    display: flex;
+    box-sizing: border-box;
 }
 </style>
