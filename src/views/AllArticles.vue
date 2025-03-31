@@ -1,5 +1,5 @@
 <template>
-    <nut-searchbar v-model="searchVal" 
+    <nut-searchbar v-model="searchVal" @clear="clearFun"
         @search="searchFun" placeholder="搜索">
         <template #rightin>
             <Search2 @click="searchFun"></Search2>
@@ -84,7 +84,10 @@ function refreshFun(){
     counterRef.value++
     // counterStore.incrementArticleCounter()
 }
-
+function clearFun(){
+    console.log('clearFun');
+    searchValCommit.value = searchVal.value
+}
 function scrollChange(v){
     console.log(`v=${v},currentPage=${currentPage.value}`)
 }
