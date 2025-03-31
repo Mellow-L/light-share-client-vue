@@ -15,13 +15,14 @@
 
 <script setup lang="js">
 import { Find, Home,Comment, My } from '@nutui/icons-vue'
-import {h,onMounted,ref,shallowRef, watchEffect} from 'vue'
+import {computed, h,onMounted,ref,shallowRef, watchEffect} from 'vue'
 import AllArticles from './AllArticles.vue'
 import MyArticles from './MyArticles.vue'
 import MyComments from './MyComments.vue'
 import MyProfile from './MyProfile.vue'
 import { loginOnLaunch } from '@/utils/apiUtils'
 import { gotoLogin } from '@/router/my-router'
+import { useUserStore } from '@/stores/user'
 
 const components = [
     AllArticles,
@@ -29,7 +30,11 @@ const components = [
     MyComments,
     MyProfile,
 ]
-const activeTab = ref(1)// 表示激活状态导航项的index
+const userStore = useUserStore()
+const activeTab = computed({
+  get: () => userStore.tabValue,
+  set: (val) => userStore.setTabValue(val) // 这样 `nut-tabbar` 切换时也能修改 store
+});
 const currentComponent = shallowRef(components[activeTab.value])
 
 const List = [

@@ -158,10 +158,13 @@ async function changePassword(){
 }
 
 function gotoMyArticles(){
-
+  console.log("被点击");
+  
+  userStore.setTabValue(1)
 }
 function gotoMyComments(){
-
+  console.log("被点击");
+  userStore.setTabValue(2)
 }
 
 // onMounted(async ()=>{

@@ -12,6 +12,7 @@ export const useUserStore = defineStore("userState",{
             isLogin:false,
             userName:'aa@wzu.edu.cn',
             password:"",
+            tabValue:0,
         }
     },
     getters:{
@@ -39,6 +40,9 @@ export const useUserStore = defineStore("userState",{
             this.avatar = userDetail?.avatar ?? ""
             this.nickName = userDetail?.name ?? ""
             this.uuid = userDetail?.uuid ?? ""
+        },
+        setTabValue(value){
+            this.tabValue = value
         },
     },
     // persist:true,
