@@ -68,11 +68,11 @@ function searchFun(){
 }
 
 async function clickStar(id){
-    const starStore = useStarStore()
-    if(!starStore.canStar(id)){
-        alert("每天只能点赞一次")
-        return
-    }
+    // const starStore = useStarStore()
+    // if(!starStore.canStar(id)){
+    //     alert("每天只能点赞一次")
+    //     return
+    // }
     let data = await apiAddItemStar(id)
     if(data){
         refresh()

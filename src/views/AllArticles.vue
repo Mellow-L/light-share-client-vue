@@ -19,7 +19,7 @@
             :loading="isLoading"
             @click="refreshFun">Refresh</nut-button>
     </nut-empty>
-    <div v-if="allList" class="center">
+    <div v-if="list && list.length > 0" class="center">
         <nut-infinite-loading v-model="isLoading"
                 :has-more="hasMore"
                 @scroll-change="scrollChange"
@@ -46,12 +46,12 @@
     </div>
 </template>
 <script setup lang="js">
-import { ref,watch,computed,onActivated } from 'vue';
+import { ref,watch,computed,onActivated, onMounted, nextTick } from 'vue';
 import MyCard from "@/components/MyCard"
 import { useCounterStore } from '@/stores/counter-store';
 import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
-import {apiAddItemStar, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
+import {apiAddItemStar, apiFetchLikeStatus, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
 import{gotoShowComment, gotoUserArticle} from '@/router/my-router'
 import { useStarStore } from '@/stores/star-store';
 import { Search2 } from '@nutui/icons-vue';
@@ -72,7 +72,7 @@ const q = computed(()=>{
     let offset = 0
     return `skip=${offset}&limit=${PAGE_SIZE*(currentPage.value+1)}`
 })
-const allList = ref(new Map())
+//const allList = ref(new Map())
 const{list, error, isLoading} = apiGetAllItemsRefresh(counterRef,q,searchValCommit)
 
 
@@ -80,10 +80,13 @@ function searchFun(){
     searchValCommit.value = searchVal.value // 提交值为输入值
     console.log('search',searchValCommit.value);
 }
-function refreshFun(){
-    counterRef.value++
-    // counterStore.incrementArticleCounter()
+function refreshFun() {
+    counterRef.value++;
+    nextTick(() => {
+        fetchLikeStatus();
+    });
 }
+
 function clearFun(){
     console.log('clearFun');
     searchValCommit.value = searchVal.value
@@ -102,16 +105,32 @@ watch(list,()=>{
         hasMore.value = true
     }
 })
-
-async function clickStar(id){
-    const starStore = useStarStore()
-    if(!starStore.canStar(id)){
-        alert("每天只能点赞一次")
-        return
+watch(list, async () => {
+    if (list.value?.length) {
+        await fetchLikeStatus();  // 重新获取点赞状态
     }
+});
+
+const fetchLikeStatus = async () => {
+    if (!list.value || list.value.length === 0) return;
+    const itemIds = list.value.map(item => item.id);
+    const likeMap = await apiFetchLikeStatus(itemIds);
+    if (!likeMap) return;
+
+    // 避免替换整个 list，改为就地更新 liked 字段
+    list.value.forEach(item => {
+        item.liked = likeMap[item.id] || false;
+    });
+};
+async function clickStar(id){
+    // const starStore = useStarStore()
+    // if(!starStore.canStar(id)){
+    //     alert("每天只能点赞一次")
+    //     return
+    // }
     let data = await apiAddItemStar(id)
-    if(data){
-        refreshFun()
+    if (data) {
+        refreshFun(); // 会调用 fetchLikeStatus()
     }
 }
 
@@ -129,7 +148,9 @@ async function onClickUser(name,src){
 onActivated(()=>{
     refreshFun()
 })
-
+onMounted(()=>{
+    fetchLikeStatus()
+})
 
 useScrollPos()
 </script>

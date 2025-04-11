@@ -19,7 +19,6 @@ export const axiosClient = axios.create({
     config:{
 
     }
-
 })
 axiosClient.interceptors.request.use(config=>{
     console.log("请求体：", config.data);
@@ -441,13 +440,27 @@ export async function apiPostComment(itemId,params) {
         alertFail(apiPostComment.name,error?.message)
     }
 }
-export async function apiAddItemStar(itemId){
-    let starStore = useStarStore()
+export async function apiFetchLikeStatus(itemIds){
     try {
-        let res = await axiosClient.post('/items/put/addstar/'+itemId)
-        if(res?.data){
-            starStore.setStarTime(itemId)
-        }
+        if(!itemIds || itemIds.length === 0)return {}
+        
+        const params = new URLSearchParams();
+        itemIds.forEach(id => params.append('item_ids', id));  
+        let res = await axiosClient.get(`/items/like-status?${params.toString()}`)
+        console.log("获得点赞状态：",res?.data);
+        return res?.data ?? {}
+    } catch (error) {
+        console.log(apiFetchLikeStatus.name,error);
+    }
+}
+export async function apiAddItemStar(itemId){
+    //let starStore = useStarStore()
+    try {
+        //let res = await axiosClient.post('/items/put/addstar/'+itemId)
+        let res = await axiosClient.post(`/items/${itemId}/toggle-like`)
+        // if(res?.data){
+        //     starStore.setStarTime(itemId)
+        // }
         return Promise.resolve(res?.data)
     } catch (error) {
         alertFail(apiAddItemStar.name,error?.message)

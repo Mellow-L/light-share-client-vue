@@ -2,7 +2,9 @@
     <a-card :style="{width:'96vw'}">
         <template #actions v-if="props.showMessage">
             <span class="icon-hover" @click="onClickStar">
-              <IconThumbUp/>{{props.star}}
+              <IconThumbUpFill v-if="props.liked"/>
+              <IconThumbUp v-else/>
+              {{props.star}}
             </span>
           <span class="icon-hover" @click="onClickComment">
               <IconMessage/>{{props.comment_count}}
@@ -38,6 +40,7 @@ import { imageBaseUrl } from "@/stores/basic-data";
 import { formatDateTime } from "@/utils/formatUtils";
 import {
     IconThumbUp,
+    IconThumbUpFill,
     IconMessage,
     IconMore,
 } from "@arco-design/web-vue/es/icon";
@@ -51,6 +54,12 @@ const props = defineProps({
   id:Number,
   modify_time:String,
   comment_count:Number,
+
+  liked: {
+    type: Boolean,
+    default: false
+  },
+
   showMessage:{
     type:Boolean,
     default(){
