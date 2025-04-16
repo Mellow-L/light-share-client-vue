@@ -388,40 +388,42 @@ export async function apiDeleteItemById(itemId){
 }
 
 
-export function apiGetCommentsByItemId(counter = ref(1),itemId){
-    const comments = ref(null)
-    const error = ref(null)
-    const isLoading = ref(true)
-    // const watchData = [
-    //     // ()=>toValue(counter),
-    //     // ()=>toValue(itemId),
-    //     counter,itemId
-    // ]
-    const watchData = [counter]
-    watch(watchData,()=>{
-        let url = '/comments/by-itemid/'+toValue(itemId)
-        console.log('comment_url',url)
-        isLoading.value = true
-        axiosClient.get(url).then(res =>{
-            if(res?.data){
-                comments.value = res.data
+export function apiGetCommentsByItemId(counter = ref(1), itemId) {
+    const comments = ref(null); // Initialize as null
+    const error = ref(null);
+    const isLoading = ref(true);
+    const watchData = [counter]; // Watch counter for refresh
+
+    watch(watchData, () => {
+        if (!toValue(itemId)) { // Add check for valid itemId
+            comments.value = [];
+            isLoading.value = false;
+            error.value = 'Invalid Item ID';
+            return;
+        }
+        let url = `/comments/by-itemid/${toValue(itemId)}`;
+        console.log('comment_url', url);
+        isLoading.value = true;
+        axiosClient.get(url).then(res => {
+            // The response now contains nested replies
+            comments.value = res?.data ?? []; // Default to empty array
+            isLoading.value = false;
+            error.value = null;
+        }).catch(e => {
+            console.error('Error fetching comments:', e);
+            if (e.response?.status == 404) {
+                showFail(apiGetCommentsByItemId.name, '无评论数据');
+                comments.value = []; // Set to empty array on 404
+            } else {
+                alertFail(apiGetCommentsByItemId.name, e?.response?.data?.detail || e?.message);
+                error.value = e?.response?.data?.detail || e?.message;
             }
-            isLoading.value = false
-            error.value = null
-        }).catch(e=>{
-            console.log('e',e)
-            if(e.status == 404){
-                showFail(apiGetCommentsByItemId.name,'无评论数据')
-                comments.value = []
-            }else{
-                alertFail(apiGetCommentsByItemId.name,e?.message)
-                error.value = e?.message
-            }
-            isLoading.value = false
-        })
-        
-    })   
-    return {comments,error,isLoading}
+             comments.value = null; // Indicate error state
+            isLoading.value = false;
+        });
+    }, { immediate: true }); // Fetch immediately on mount/itemId change
+
+    return { comments, error, isLoading };
 }
 
 export async function apiDeleteCommentById(commentId){
@@ -432,12 +434,41 @@ export async function apiDeleteCommentById(commentId){
         alertFail(apiDeleteCommentById.name,error?.message)
     }
 }
-export async function apiPostComment(itemId,params) {
+export async function apiPostComment(itemId, params, imageFile = null) {
+    // params should now contain: { content: string, hint?: string, order?: int, parent_id?: int }
     try {
-        let res = await axiosClient.post('/comments/'+itemId,params)
-        return Promise.resolve(res?.data)
+        // Create FormData object
+        const formData = new FormData();
+        formData.append('content', params.content || ''); // Ensure content is always sent
+
+        // Append optional fields if they exist
+        if (params.hint) {
+            formData.append('hint', params.hint);
+        }
+        if (params.order !== undefined && params.order !== null) {
+            formData.append('order', params.order.toString()); // FormData values are often strings
+        }
+        if (params.parent_id !== undefined && params.parent_id !== null) {
+            formData.append('parent_id', params.parent_id.toString());
+        }
+
+        // Append the image file if provided
+        if (imageFile) {
+            // You might want to add checks here for file type or size
+            formData.append('image', imageFile, imageFile.name); // 'image' should match the backend File(...) key
+        }
+
+        // Make the POST request with FormData
+        // Axios automatically sets 'Content-Type': 'multipart/form-data' for FormData
+        let res = await axiosClient.post(`/comments/${itemId}`, formData);
+
+        showSuccess(apiPostComment.name, "评论成功"); // Add success message
+        return Promise.resolve(res?.data); // Backend returns the updated list
     } catch (error) {
-        alertFail(apiPostComment.name,error?.message)
+        console.error(apiPostComment.name, error); // Log the full error
+        alertFail(apiPostComment.name, error?.response?.data?.detail || error?.message || "评论失败");
+        // Don't return Promise.reject here unless you handle it specifically elsewhere
+        return null; // Indicate failure
     }
 }
 export async function apiFetchLikeStatus(itemIds){
