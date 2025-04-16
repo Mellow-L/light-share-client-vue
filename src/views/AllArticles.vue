@@ -31,6 +31,7 @@
                     v-model="isLoading" @refresh="refreshFun">
                     <MyCard v-for="item in list" :key="item.id" v-bind="item"
                         @onClickStar="(id)=>clickStar(id)"
+                        @onClickItem="(id)=>gotoShowArticle(id)"
                         @onClickComment="gotoShowComment(item.id)"
                         @onClickUser="(name)=>onClickUser(name)"></MyCard>
                 </nut-pull-refresh>
@@ -39,6 +40,7 @@
                 direction="vertical" align="center" fill>
                 <MyCard v-for="item in list" :key="item.id" v-bind="item"
                     @onClickStar="(id)=>clickStar(id)"
+                    @onClickItem="(id)=>gotoShowArticle(id)"
                     @onClickComment="gotoShowComment(item.id)"
                     @onClickUser="(name,src)=>onClickUser(name,src)"></MyCard>
             </nut-space>
@@ -52,7 +54,7 @@ import { useCounterStore } from '@/stores/counter-store';
 import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
 import {apiAddItemStar, apiFetchLikeStatus, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
-import{gotoShowComment, gotoUserArticle} from '@/router/my-router'
+import{gotoShowArticle, gotoShowComment, gotoUserArticle} from '@/router/my-router'
 import { useStarStore } from '@/stores/star-store';
 import { Search2 } from '@nutui/icons-vue';
 
