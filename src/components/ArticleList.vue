@@ -79,9 +79,13 @@ const props = defineProps({
 
 const emits = defineEmits(['onRefresh'])
 async function dealDelete(itemId) {
-    console.log('dealDelete',itemId);
-    await apiDeleteItemById(itemId)
-    emits('onRefresh')
+    console.log('dealDelete in ArticleList, itemId:',itemId);
+    try {
+        await apiDeleteItemById(itemId)
+        emits('onRefresh', itemId)
+    } catch (error) {
+        console.error("Error deleting item in ArticleList:", error);
+    }
 }
 function confirmDelete(item) {
     showDialog({

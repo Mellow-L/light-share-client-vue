@@ -13,7 +13,7 @@
         @refreshFun="refresh">
     </ErrorState>
     <ArticleList :items="list"
-        onRefresh="refresh">
+        @onRefresh="refresh">
     </ArticleList>
     <div v-if="!isLogin" class="center">
         <nut-button type="info" @click="gotoLogin">去登录页面</nut-button>
@@ -63,9 +63,21 @@ function executeManualSearch() {
 
 const {list,error,isLoading}  = apiGetAllItemsByUserId(counter,uuid,searchValCommit)
 useScrollPos()
-function refresh(){
+
+function refresh(deletedItemId){
+    console.log('MyArticles refresh triggered. Deleted Item ID:', deletedItemId);
+    
+    if (deletedItemId && list.value) {
+        const index = list.value.findIndex(article => article.id === deletedItemId);
+        if (index !== -1) {
+            list.value.splice(index, 1);
+            console.log('Optimistically removed item with ID:', deletedItemId, 'from local list.');
+        }
+    }
+    
     counter.value ++
 }
+
 function clearFun(){
     searchVal.value = '';
     searchValCommit.value = '';
