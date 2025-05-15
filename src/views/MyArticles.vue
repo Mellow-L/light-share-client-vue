@@ -1,8 +1,8 @@
 <template>
     <nut-searchbar v-model="searchVal" @clear="clearFun"
-        @search="searchFun" placeholder="搜索">
+        placeholder="搜索">
         <template #rightin>
-            <Search2 @click="searchFun"></Search2>
+            <Search2 @click="executeManualSearch"></Search2>
         </template>
         <template #rightout>
             <nut-button type="info" icon="Add" size="small" @click="addArticle">发布</nut-button>
@@ -27,8 +27,18 @@ import { apiGetAllItemsByUserId } from '@/utils/apiUtils';
 import { useScrollPos } from '@/utils/scrollUtils';
 import { Search2, Add } from '@nutui/icons-vue';
 import { storeToRefs } from 'pinia';
+import { onActivated, ref, watch } from 'vue';
 
-import { onActivated, ref } from 'vue';
+function debounce(func, delay) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+
 const searchVal = ref('')
 const searchValCommit = ref('')
 const counter = ref(0)
@@ -36,18 +46,30 @@ const useUser = useUserStore()
 const userRef = storeToRefs(useUser)
 const isLogin = ref(userRef.isLogin)
 const uuid = ref(userRef.uuid)
+
+const debouncedUpdateSearchCommit = debounce((value) => {
+  searchValCommit.value = value;
+  console.log('MyArticles - 防抖搜索触发:', value);
+}, 500);
+
+watch(searchVal, (newValue) => {
+  debouncedUpdateSearchCommit(newValue);
+});
+
+function executeManualSearch() {
+  searchValCommit.value = searchVal.value;
+  console.log('MyArticles - 手动搜索触发:', searchVal.value);
+}
+
 const {list,error,isLoading}  = apiGetAllItemsByUserId(counter,uuid,searchValCommit)
 useScrollPos()
 function refresh(){
     counter.value ++
 }
 function clearFun(){
-    console.log('clearFun');
-    searchValCommit.value = searchVal.value
-}
-function searchFun(){
-    searchValCommit.value = searchVal.value
-    console.log('search',searchValCommit.value);
+    searchVal.value = '';
+    searchValCommit.value = '';
+    console.log('MyArticles - 搜索框已清除');
 }
 function addArticle(){
     console.log('add article');

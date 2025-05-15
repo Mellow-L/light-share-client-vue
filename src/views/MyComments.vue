@@ -1,8 +1,8 @@
 <template>
     <nut-searchbar v-model="searchVal" @clear="clearFun"
-        @search="searchFun" placeholder="搜索">
+        placeholder="搜索评论内容或文章标题">
         <template #rightin>
-            <Search2 @click="searchComments"></Search2>
+            <Search2 @click="executeManualSearch"></Search2>
         </template>
     </nut-searchbar>
     <ErrorState :error="error"
@@ -60,8 +60,19 @@ import {
     IconBook
 } from "@arco-design/web-vue/es/icon";
 import { storeToRefs } from 'pinia';
-import { onActivated, ref ,computed} from 'vue';
+import { onActivated, ref ,computed, watch } from 'vue';
 import { Search2 } from '@nutui/icons-vue';
+
+// 防抖函数
+function debounce(func, delay) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
 
 const counter = ref(1)
 const {comments,error,isLoading} = apiGetMyComments(counter)
@@ -69,27 +80,39 @@ const userState = useUserStore()
 const userRef = storeToRefs(userState)
 const isLogin = ref(userRef.isLogin)
 
-// 二者分离避免频繁触发请求
-const searchVal = ref('') // 实时输入值
-const searchValCommit = ref('') // 提交的搜索值 
+const searchVal = ref('') // 搜索框的实时输入值
+const searchValCommit = ref('') // 用于前端过滤的实际关键词
+
+// 防抖处理的函数：延迟更新实际用于过滤的搜索词
+const debouncedUpdateSearchCommit = debounce((value) => {
+  searchValCommit.value = value;
+  console.log('MyComments - 防抖搜索触发:', value);
+}, 300); // 评论是前端过滤，延迟可以短一些，例如300ms
+
+// 监听搜索框输入变化
+watch(searchVal, (newValue) => {
+  debouncedUpdateSearchCommit(newValue);
+});
+
+// 手动点击搜索按钮触发
+function executeManualSearch() {
+  searchValCommit.value = searchVal.value;
+  console.log('MyComments - 手动搜索触发:', searchVal.value);
+}
 
 const filteredComments = computed(() => {
-    if (!comments.value || !searchValCommit.value.trim()) {
+    if (!comments.value) return []; // 如果评论数据还未加载，返回空数组
+    if (!searchValCommit.value.trim()) {
         return comments.value; // 无搜索词时返回全部评论
     }
     
     const searchTerm = searchValCommit.value.toLowerCase().trim();
     
     return comments.value.filter(c => {
-        // 匹配评论内容
         const contentMatch = c.content && 
             c.content.toLowerCase().includes(searchTerm);
-        
-        // 匹配文章标题
         const titleMatch = c.item && c.item.title && 
             c.item.title.toLowerCase().includes(searchTerm);
-        
-        // 任一匹配即可
         return contentMatch || titleMatch;
     });
 });
@@ -110,14 +133,11 @@ function refreshFun(){
     counter.value ++
 }
 function clearFun(){
-    console.log('clearFun');
-    searchVal.value = ''; // 清空输入框
-    searchValCommit.value = searchVal.value // 提交值为输入值
+    searchVal.value = '';
+    searchValCommit.value = ''; // 立即清空提交的搜索词以更新列表
+    console.log('MyComments - 搜索框已清除');
 }
-function searchComments(){
-    searchValCommit.value = searchVal.value // 提交值为输入值
-    console.log('search',searchValCommit.value);
-}
+
 onActivated(()=>{
     refreshFun()
 })

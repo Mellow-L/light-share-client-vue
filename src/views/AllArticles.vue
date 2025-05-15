@@ -1,8 +1,8 @@
 <template>
     <nut-searchbar v-model="searchVal" @clear="clearFun"
-        @search="searchFun" placeholder="搜索">
+        placeholder="搜索">
         <template #rightin>
-            <Search2 @click="searchFun"></Search2>
+            <Search2 @click="executeManualSearch"></Search2>
         </template>
     </nut-searchbar>
     <nut-empty v-if="error" image="error" description="Error">
@@ -55,10 +55,19 @@ import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
 import {apiAddItemStar, apiFetchLikeStatus, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
 import{gotoShowArticle, gotoShowComment, gotoUserArticle, gotoLogin} from '@/router/my-router'
-import { useStarStore } from '@/stores/star-store';
 import { Search2 } from '@nutui/icons-vue';
 import { useUserStore } from '@/stores/user';
 import { showToast } from '@nutui/nutui';
+
+function debounce(func, delay) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
 
 const counterStore = useCounterStore()
 const counterRefObj = storeToRefs(counterStore)
@@ -68,22 +77,29 @@ const hasMore = ref(true)
 const currentPage = ref(0)
 const PAGE_SIZE = 5
 
-// 二者分离避免频繁触发请求
-const searchVal = ref('') // 实时输入值
-const searchValCommit = ref('') // 提交的搜索值 注意声明在api函数使用前
+const searchVal = ref('')
+const searchValCommit = ref('')
+
+const debouncedProcessSearchInput = debounce((currentInputValue) => {
+  searchValCommit.value = currentInputValue;
+  console.log('防抖搜索触发，关键词:', currentInputValue);
+}, 500);
+
+watch(searchVal, (newVal) => {
+  debouncedProcessSearchInput(newVal);
+});
+
+function executeManualSearch() {
+  searchValCommit.value = searchVal.value;
+  console.log('手动搜索触发，关键词:', searchVal.value);
+}
 
 const q = computed(()=>{
     let offset = 0
     return `skip=${offset}&limit=${PAGE_SIZE*(currentPage.value+1)}`
 })
-//const allList = ref(new Map())
 const{list, error, isLoading} = apiGetAllItemsRefresh(counterRef,q,searchValCommit)
 
-
-function searchFun(){
-    searchValCommit.value = searchVal.value // 提交值为输入值
-    console.log('search',searchValCommit.value);
-}
 function refreshFun() {
     counterRef.value++;
     nextTick(() => {
@@ -92,11 +108,11 @@ function refreshFun() {
 }
 
 function clearFun(){
-    console.log('clearFun');
-    searchValCommit.value = searchVal.value
+    searchValCommit.value = '';
+    console.log('搜索框已清除');
 }
 function scrollChange(v){
-    console.log(`v=${v},currentPage=${currentPage.value}`)
+    console.log(`滚动位置变化: ${v}, 当前页: ${currentPage.value}`)
 }
 function loadMore(){
     currentPage.value++
@@ -111,7 +127,7 @@ watch(list,()=>{
 })
 watch(list, async () => {
     if (list.value?.length) {
-        await fetchLikeStatus();  // 重新获取点赞状态
+        await fetchLikeStatus();
     }
 });
 
@@ -121,38 +137,32 @@ const fetchLikeStatus = async () => {
     const likeMap = await apiFetchLikeStatus(itemIds);
     if (!likeMap) return;
 
-    // 避免替换整个 list，改为就地更新 liked 字段
     list.value.forEach(item => {
         item.liked = likeMap[item.id] || false;
     });
 };
 async function clickStar(id){
-    // const starStore = useStarStore()
-    // if(!starStore.canStar(id)){
-    //     alert("每天只能点赞一次")
-    //     return
-    // }
-    const userStore = useUserStore()
-    if (!userStore.isLogin) {
+    const userStoreInstance = useUserStore()
+    if (!userStoreInstance.isLogin) {
         showToast.warn("请先登录后再点赞！")
         gotoLogin(1)
         return
     }
     let data = await apiAddItemStar(id)
     if (data) {
-        refreshFun(); // 会调用 fetchLikeStatus()
+        refreshFun();
     }
 }
 
 async function onClickUser(name,src){
-    console.log("头像被点击");
+    console.log("用户头像被点击");
     try {
         const uuid = await apiGetUuidByName(name)
-        console.log("后端返回的uuid：",uuid);
+        console.log("通过用户名获取到的uuid：",uuid);
         
         gotoUserArticle(uuid)
     } catch (error) {
-        console.log("用户id获取失败",error);
+        console.log("获取用户uuid失败",error);
     }
 }
 onActivated(()=>{
