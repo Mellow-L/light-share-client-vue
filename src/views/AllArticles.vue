@@ -54,9 +54,11 @@ import { useCounterStore } from '@/stores/counter-store';
 import { storeToRefs } from 'pinia';
 import { useScrollPos } from '@/utils/scrollUtils';
 import {apiAddItemStar, apiFetchLikeStatus, apiGetAllItemsRefresh, apiGetUuidByName} from '@/utils/apiUtils'
-import{gotoShowArticle, gotoShowComment, gotoUserArticle} from '@/router/my-router'
+import{gotoShowArticle, gotoShowComment, gotoUserArticle, gotoLogin} from '@/router/my-router'
 import { useStarStore } from '@/stores/star-store';
 import { Search2 } from '@nutui/icons-vue';
+import { useUserStore } from '@/stores/user';
+import { showToast } from '@nutui/nutui';
 
 const counterStore = useCounterStore()
 const counterRefObj = storeToRefs(counterStore)
@@ -130,6 +132,12 @@ async function clickStar(id){
     //     alert("每天只能点赞一次")
     //     return
     // }
+    const userStore = useUserStore()
+    if (!userStore.isLogin) {
+        showToast.warn("请先登录后再点赞！")
+        gotoLogin(1)
+        return
+    }
     let data = await apiAddItemStar(id)
     if (data) {
         refreshFun(); // 会调用 fetchLikeStatus()
