@@ -5,7 +5,7 @@
             <Search2 @click="searchFun"></Search2>
         </template>
         <template #rightout>
-            <nut-tag type="danger" @click="addArticle">发布文章</nut-tag>
+            <nut-button type="info" icon="Add" size="small" @click="addArticle">发布</nut-button>
         </template>
     </nut-searchbar>
     <ErrorState v-if="error" :error="error"
@@ -25,7 +25,7 @@ import { gotoLogin, gotoPostArticle } from '@/router/my-router';
 import { useUserStore } from '@/stores/user';
 import { apiGetAllItemsByUserId } from '@/utils/apiUtils';
 import { useScrollPos } from '@/utils/scrollUtils';
-import { Search2 } from '@nutui/icons-vue';
+import { Search2, Add } from '@nutui/icons-vue';
 import { storeToRefs } from 'pinia';
 
 import { onActivated, ref } from 'vue';
