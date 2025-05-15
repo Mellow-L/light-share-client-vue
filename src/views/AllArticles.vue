@@ -5,20 +5,28 @@
             <Search2 @click="executeManualSearch"></Search2>
         </template>
     </nut-searchbar>
-    <nut-empty v-if="error" image="error" description="Error">
-        <nut-cell>
-            <nut-ellipsis :content="error"
-                direction="end"
-                expand-text="展开"
-                rows="3"
-                class="my-ellipsis"
-                collapse-text="收起">
-            </nut-ellipsis>
-        </nut-cell>
-        <nut-button type="primary" style="margin-top: 5px;"
-            :loading="isLoading"
-            @click="refreshFun">Refresh</nut-button>
+
+    <!-- 通用错误提示：网络错误等 -->
+    <nut-empty v-if="error && !isLoading" image="error" :description="error">
+        <nut-button type="primary" style="margin-top: 5px;" @click="refreshFun">重试</nut-button>
     </nut-empty>
+
+    <!-- 加载完成，无错误，但列表为空（或null），且用户已输入搜索词 -->
+    <nut-empty v-if="!error && !isLoading && (!list || list.length === 0) && searchValCommit">
+        <template #image>
+            <Search2 color="#999" width="50px" height="50px" />
+        </template>
+        <template #description>
+            <span>没有找到与 "{{ searchValCommit }}" 相关的内容</span>
+        </template>
+         <nut-button type="primary" plain style="margin-top: 5px;" @click="clearSearchAndRefresh">清空并刷新</nut-button>
+    </nut-empty>
+
+    <!-- 加载完成，无错误，列表为空，且用户未输入搜索词 (初始状态或清空搜索后) -->
+     <nut-empty v-if="!error && !isLoading && (!list || list.length === 0) && !searchValCommit" description="暂无文章">
+         <nut-button type="primary" style="margin-top: 5px;" @click="refreshFun">刷新列表</nut-button>
+    </nut-empty>
+
     <div v-if="list && list.length > 0" class="center">
         <nut-infinite-loading v-model="isLoading"
                 :has-more="hasMore"
@@ -108,9 +116,17 @@ function refreshFun() {
 }
 
 function clearFun(){
+    searchVal.value = '';
     searchValCommit.value = '';
     console.log('搜索框已清除');
 }
+
+function clearSearchAndRefresh() {
+    searchVal.value = '';
+    searchValCommit.value = '';
+    refreshFun();
+}
+
 function scrollChange(v){
     console.log(`滚动位置变化: ${v}, 当前页: ${currentPage.value}`)
 }
