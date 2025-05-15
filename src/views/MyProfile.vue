@@ -1,5 +1,5 @@
 <template>
-  <nut-navbar title="林怡然 22211860212" left-show @click-back="gotoBack"></nut-navbar>
+  <nut-navbar title="个人主页"></nut-navbar>
   <div v-if="userStoreRef.isLogin.value">
     <nut-cell title="头像" is-link @click="changeUploaderView">
       <template #desc>
@@ -68,16 +68,16 @@
     </div>
   </div>
   <div v-else class="center">
-    <nut-button type="info" @click="gotoLogin">返回登录页面</nut-button>
+    <nut-button type="info" @click="gotoLogin">去登录页面</nut-button>
   </div>
 </template>
 
 <script setup>
-import {gotoBack, gotoSettings, gotoLogin as login} from "@/router/my-router";
+import {gotoBack, gotoSettings, gotoLogin as login, gotoHome} from "@/router/my-router";
 import {useUserStore} from "@/stores/user";
 import {storeToRefs} from "pinia";
 import {apiGetDetailProfile, apiLogout, apiModifyPassword, apiRenameMe} from "@/utils/apiUtils";
-import {onMounted, reactive, ref} from "vue";
+import {onMounted, reactive, ref, onActivated} from "vue";
 import ImageUploader from "@/components/ImageUploader.vue";
 import {imageBaseUrl} from "@/stores/basic-data";
 import {Eye} from "@nutui/icons-vue"
@@ -106,9 +106,10 @@ const inputTypes = ['password','text']
 const pwdStyle = ref(inputTypes[0])
 async function logout(){
   await apiLogout()
+  gotoHome();
 }
 function gotoLogin(){
-  login()
+  login(2);
 }
 
 function changeUploaderView(){
@@ -167,14 +168,22 @@ function gotoMyComments(){
   userStore.setTabValue(2)
 }
 
-// onMounted(async ()=>{
-//   await apiGetProfile()
-// })
-onMounted(()=>{
-  if(userStore.isLogin){
-    getProfileDetail();
+const handleProfileLoad = async () => {
+  if (userStore.isLogin) {
+    console.log('MyProfile: User is logged in. Fetching details.');
+    await getProfileDetail();
+    if (userStore.justLoggedIn) {
+      console.log('MyProfile: Detected new login, profile details fetched/refreshed.');
+      userStore.clearJustLoggedInFlag();
+    }
+  } else {
+    console.log('MyProfile: User not logged in. Redirecting to login.');
+    login(2);
   }
-})
+};
+
+onMounted(handleProfileLoad);
+onActivated(handleProfileLoad);
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <nut-navbar title="林怡然 22211860212" left-show @click-back="gotoBack"></nut-navbar>
+  <nut-navbar title="登录" left-show @click-back="gotoBack"></nut-navbar>
   <nut-row type="flex" justify="center">
     <nut-col :span="18" fill>
       <nut-image :src="logoSrc" width="100%" height="50vh" fit="cover" radius="10px"></nut-image>

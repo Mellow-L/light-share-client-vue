@@ -13,6 +13,7 @@ export const useUserStore = defineStore("userState",{
             userName:'aa@wzu.edu.cn',
             password:"",
             tabValue:0,
+            justLoggedIn: false,
         }
     },
     getters:{
@@ -29,6 +30,11 @@ export const useUserStore = defineStore("userState",{
         },
         setLoginState(isLogin){
             this.isLogin = isLogin
+            if (isLogin) {
+                this.justLoggedIn = true;
+            } else {
+                this.justLoggedIn = false;
+            }
         },
         setUserName(name){
             this.userName = name
@@ -44,13 +50,20 @@ export const useUserStore = defineStore("userState",{
         setTabValue(value){
             this.tabValue = value
         },
+        clearJustLoggedInFlag() {
+            this.justLoggedIn = false;
+        }
     },
     // persist:true,
     persist:{
         serializer:{
             serialize:(state)=>encryptObject(state),
             deserialize:(data)=>decrypObject(data)
-        }
+        },
+        paths: [
+            'user', 'avatar', 'nickName', 'token', 'uuid', 
+            'isLogin', 'userName', 'password', 'tabValue'
+        ]
     }
 })
 

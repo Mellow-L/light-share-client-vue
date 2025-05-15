@@ -54,7 +54,7 @@ const List = [
         name:'comment',
     },
     {
-        title:'林怡然',
+        title:'我的主页',
         icon: h(My),
         name:'my',
     },

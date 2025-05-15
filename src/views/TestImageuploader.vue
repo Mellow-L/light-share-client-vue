@@ -2,7 +2,6 @@
   <div style="margin-bottom: 10px">
     <nut-button @click="gotoLogin">登录</nut-button>
   </div>
-  <div>林怡然 22211860212</div>
   <div>
     <nut-image :src="absoluteSrc" width="100" height="100"  ></nut-image>
     <a :href="absoluteSrc">跳转</a>
