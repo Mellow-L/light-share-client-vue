@@ -16,36 +16,39 @@
             <image-uploader v-model:img-src="formData.src"/>
         </nut-form-item>
    </nut-form>
-   <nut-swipe-group>
-        <nut-swipe v-for="(item) in sortedImgContents"
-            :key="item.order"
-            :name="item.order">
-                <nut-textarea v-model="item.img_content" :rows="3" autosize
-                    :max-length="2000" limit-show/>
-                <image-uploader v-model:img-src="item.url"
-                    @onSuccess="res=>onImgContentSuccess(item,res)">
-                </image-uploader>
-                <template #right>
-                    <nut-button shape="square"
-                        style="height: 100%"
-                        type="info"
-                        @click="moveItem(item,'up')"
-                        :disabled="isFirstItem(item)">上移
-                    </nut-button>
-                    <nut-button shape="square"
-                        style="height: 100%"
-                        type="info"
-                        @click="moveItem(item,'down')"
-                        :disabled="isLastItem(item)">下移
-                    </nut-button>
-                    <nut-button shape="square"
-                        style="height: 100%"
-                        type="danger"
-                        @click="deleteImageByItemId(item)">删除
-                    </nut-button>
-                </template>
-        </nut-swipe>
-   </nut-swipe-group>
+
+    <div v-for="(item) in sortedImgContents"
+        :key="item.clientId || item.id" 
+        class="image-content-item">
+        
+        <nut-textarea v-model="item.img_content" :rows="3" autosize
+            :max-length="2000" limit-show/>
+        <image-uploader v-model:img-src="item.url"
+            @onSuccess="res=>onImgContentSuccess(item,res)">
+        </image-uploader>
+        
+        <nut-space style="margin-top: 5px; margin-bottom: 15px;">
+            <nut-button shape="square"
+                size="small"
+                type="info"
+                @click="moveItem(item,'up')"
+                :disabled="isFirstItem(item)">上移
+            </nut-button>
+            <nut-button shape="square"
+                size="small"
+                type="info"
+                @click="moveItem(item,'down')"
+                :disabled="isLastItem(item)">下移
+            </nut-button>
+            <nut-button shape="square"
+                size="small"
+                type="danger"
+                @click="deleteImageByItemId(item)">删除
+            </nut-button>
+        </nut-space>
+        <nut-divider v-if="!isLastItem(item)" style="margin-bottom: 10px;" />
+    </div>
+
    <nut-space :gutter="20" style="margin-top: 10px;">
         <nut-button size="small" type="info"
             @click="addImageContent">添加内容</nut-button>
@@ -56,11 +59,13 @@
 
 <script setup lang="js">
 import { apiDeleteImageById, apiDeleteImageByPath, apiPostItemDetail } from '@/utils/apiUtils'
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 
 const itemId = defineModel('itemId')
 const formData = defineModel('formData')
 const imgContents = defineModel('imgContents')
+
+let nextClientId = -1; // Counter for new item client IDs
 
 const sortedImgContents = computed(() => {
   return [...imgContents.value].sort((a, b) => a.order - b.order);
@@ -68,67 +73,76 @@ const sortedImgContents = computed(() => {
 const emits = defineEmits(['onSubmit'])
 
 function addImageContent(){
-    // 取最后一个元素
-    let orderValue = 0// 默认为0
+    let orderValue = 0
     if(imgContents.value.length > 0){
-        // 存在图文项，多项则找到最大order值+1
-        // 若仅一项则从-1+1=0开始
         orderValue = Math.max(...imgContents.value.map(item => item.order ?? -1))+1
     }
-    // NOTE: js中0被认为是false，用？判断时导致新增选段order为0.更正.
     let imgItem = reactive({
         name:"",
         url:"",
         img_content:"",
         order:orderValue,
-        id:0
+        id:0, 
+        clientId: nextClientId-- 
     })
-    imgContents.value.push(imgItem)    
-    console.log(addImageContent.name,'sortedImgContents',sortedImgContents.value);
+    imgContents.value.push(imgItem)
 }
 
 function moveItem(item, direction) {
-  console.log("移动操作触发");
   const currentOrder = item.order;
   const targetOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
-
   const targetItem = imgContents.value.find(i => i.order === targetOrder);
   
   if (targetItem) {
     item.order = targetOrder;
     targetItem.order = currentOrder;
-    imgContents.value = [...imgContents.value];
+    // Force reactivity for the array if direct order mutation isn't enough for v-for re-render
+    // imgContents.value = [...imgContents.value]; 
   }
 }
 
 function isFirstItem(item) {
+  if (imgContents.value.length <= 1) return true;
   const orders = imgContents.value.map(i => i.order);
   const minOrder = Math.min(...orders);
   return item.order === minOrder;
 }
 
 function isLastItem(item) {
+  if (imgContents.value.length <= 1) return true;
   const orders = imgContents.value.map(i => i.order);
   const maxOrder = Math.max(...orders);
   return item.order === maxOrder;
 }
 async function deleteImageByItemId(item){
-    let index = imgContents.value.indexOf(item)
-    if(item.id > 0){
-        await apiDeleteImageById(item.id)
-    }else{
-        if(item?.url){
-            await apiDeleteImageByPath(item.url)
+    const itemToDelete = imgContents.value.find(contentItem => (contentItem.clientId || contentItem.id) === (item.clientId || item.id));
+    if (!itemToDelete) return;
+
+    const index = imgContents.value.indexOf(itemToDelete);
+
+    if(itemToDelete.id > 0){ // Existing item from backend
+        await apiDeleteImageById(itemToDelete.id)
+    } else { // New item not yet saved to backend
+        if(itemToDelete.url){ // If it has an uploaded image, delete it from server
+            await apiDeleteImageByPath(itemToDelete.url)
         }
     }
-    imgContents.value.splice(index,1)
+    if (index > -1) {
+        imgContents.value.splice(index,1)
+    }
 }
-async function onImgContentSuccess(item, resObj) {
-    item.name = resObj.name
+async function onImgContentSuccess(item, resUrl) { // Changed resObj to resUrl for clarity
+    // Assuming resUrl is the direct URL string of the uploaded image
+    // The image-uploader component should emit the final URL/path
+    // item.name might not be relevant here if resUrl is just a path/URL
+    // If the server response for image upload contains a 'name', adjust accordingly.
+    console.log("Image content success, URL:", resUrl, "for item:", item);
 }
 async function submitContent() {
-    imgContents.value = sortedImgContents.value
-    console.log(imgContents.value); 
+    // Ensure order is up-to-date before submitting, though sortedImgContents should reflect it
+    // imgContents.value = sortedImgContents.value; 
+    // The above line might not be necessary if mutations to order directly trigger re-sort in computed prop
+    console.log("Submitting imgContents:", imgContents.value); 
     let id = await apiPostItemDetail(itemId,formData.value,imgContents.value)
     console.log(submitContent.name,'id',id);
     emits('onSubmit',id)
@@ -136,5 +150,10 @@ async function submitContent() {
 </script>
 
 <style scoped>
-
+.image-content-item {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+}
 </style>
