@@ -6,7 +6,6 @@ import {alertFail, showFail, showSuccess} from "@/utils/showMessage";
 import {gotoLogin} from "@/router/my-router";
 import {baseUrl} from "@/stores/basic-data";
 import  { ref,watchEffect,toValue,watch } from 'vue'
-import { useStarStore } from "@/stores/star-store";
 
 
 let userStore;

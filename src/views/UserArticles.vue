@@ -37,7 +37,6 @@
 import ArticleList from '@/components/ArticleList.vue';
 import MyCard from '@/components/MyCard.vue';
 import { gotoBack, gotoShowComment } from '@/router/my-router';
-import { useStarStore } from '@/stores/star-store';
 import { apiAddItemStar, apiGetAllItemsByUserId, apiGetUserInfoByUuid } from '@/utils/apiUtils';
 import { useScrollPos } from '@/utils/scrollUtils';
 import { Search2 } from '@nutui/icons-vue';
@@ -68,11 +67,6 @@ function searchFun(){
 }
 
 async function clickStar(id){
-    // const starStore = useStarStore()
-    // if(!starStore.canStar(id)){
-    //     alert("每天只能点赞一次")
-    //     return
-    // }
     let data = await apiAddItemStar(id)
     if(data){
         refresh()
